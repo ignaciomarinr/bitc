@@ -3,6 +3,7 @@ var DataFrame = require('dataframe-js').DataFrame;
 
 var https = require('https');
 var fs = require('fs');
+var originAddress = "";
 
 //var info = "";
 //var txs= "";
@@ -16,6 +17,8 @@ var options = {
 //function from https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 
 callback = function(response) {
+
+	bc = [];
   var str = '';
 
   //another chunk of data has been recieved, so append it to `str`
@@ -29,6 +32,7 @@ callback = function(response) {
     var info = JSON.parse(str);
     var txs = info.txs;
     console.log(info.address);
+    originAddress = info.address;
     console.log(txs[0].hash)
 
     for(t in txs){
@@ -59,10 +63,10 @@ callback = function(response) {
     var lineArray = [];
 	bc.forEach(function (infoArray, index) {
 	    var line = infoArray.join(",");
-	    lineArray.push(index == 0 ? "origin,destination,value"+ "\n" + line : line);
+	    lineArray.push(index == 0 ? "source,target,value"+ "\n" + line : line);
 	});
 	var csvContent = lineArray.join("\n");
-	fs.writeFile("force.csv", csvContent);
+	fs.writeFile("prueba.csv", csvContent);
 
   });
 }
@@ -73,6 +77,6 @@ exports.api = function(req, res, next){
 	https.request(options, callback).end();
 
 
-	res.render('resultados/result', {dir: "info.address"});
+	res.render('resultados/result', {dir: originAddress});
 	
 }
