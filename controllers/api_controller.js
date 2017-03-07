@@ -10,6 +10,7 @@ var valid = 0;
 //var info = "";
 //var txs= "";
 var bc = [];
+var A = "a";
 
 // var options = 'blockchain.info/es/rawaddr/1JygMEn42dRJCYQ4s9sjk3Mi5AFvTvpNbA'
 
@@ -61,13 +62,13 @@ exports.api = function(req, res, next){
         for(t in txs){
           console.log("Entra en el for 1")
           var inp = txs[t].inputs;
+          var tout = txs[t].out;
           console.log(typeof inp)
           console.log("Tras inp")
 
           for(inputs in inp){
             console.log("Entra en el for 2")
             var from = inp[inputs].prev_out.addr;
-            var tout = txs[t].out;
             for(out in tout){
               console.log("Entra en el  for 3")
               var to = tout[out].addr;
