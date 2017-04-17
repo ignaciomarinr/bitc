@@ -5,6 +5,12 @@ var nodes = {};
 var id = document.getElementById("sacaValor").getAttribute('value');
 console.log("ID: "+ id)
 
+var units = "Widgets";
+
+var formatNumber = d3.format(",.0f"),    // zero decimal places
+    format = function(d) { return formatNumber(d); },
+    color = d3.scale.category20();
+
 
 // Compute the distinct nodes from the links.
 links.forEach(function(link) {
@@ -38,15 +44,6 @@ var svg = d3.select("body").append("svg")
 //         .text(function(d) {
 //             return d.target.name; });
 
-var link = svg.selectAll(".link")
-        .data(links)
-        .enter().append("line")
-        .attr("class", "link");
-link.append("title")
-        .text(function(d) {
-            return d.target.name; });
-
-
 
 // build the arrow.
 svg.append("svg:defs").selectAll("marker")
@@ -69,13 +66,14 @@ var path = svg.append("svg:g").selectAll("path")
     .attr("class", function(d) { return "link " + d.type; })
     .attr("class", "link")
     .attr("marker-end", "url(#end)")
+    .text(function(d) {  console.log("solotext"); return format(d.value); })
     .on("mouseover", function(d){
         var g = d3.select(this);
-        var info =g.append('text')
+        var info =g.append("svg:title")
             .classed('info', true)
             .attr("x", 12)
             .attr("dy", ".35em")
-            .text(function(d) { console.log("LINK"); return "HELLO"; });
+            .text(function(d) {  console.log("LINK:" + format(d.value)); return format(d.value); });
     });
 
 // define the nodes

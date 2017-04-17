@@ -2,4 +2,4 @@ source,target,value
 A,B,2
 A,C,3
 A,D,7
-A,C,15
+C,A,15
