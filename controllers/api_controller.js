@@ -102,18 +102,24 @@ exports.api = function(req, res, next){
             console.log("Tras el RENDER");
 
 
-        });
+        });//Fin de la función response.on
     }//Fin de la función callback
-
 
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
     var answer = req.query.answer;
     var direcciones = [answer];
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
     //El siguiente código ha sido obtenido y tras ello modificado de la url:
     //https://developers.google.com/web/fundamentals/getting-started/primers/promises
     //Realiza peticiones HTTP usando XMLHttpRequest()
-    
+
     function get(url) {
         console.log("Entra en get");
         // Return a new promise.
@@ -130,13 +136,13 @@ exports.api = function(req, res, next){
                 // so check the status
                 if (req.status == 200) {
                     // Resolve the promise with the response text
-                    resolve(req.response);
+                    resolve(req.responseText);
                 }
                 else {
                     // Otherwise reject with the status text
                     // which will hopefully be a meaningful error
                     reject(Error(req.statusText));
-                }
+                };
             };
 
             // Handle network errors
@@ -157,12 +163,15 @@ exports.api = function(req, res, next){
         console.log("Entra en llamadasHttp");
         if(direccionesPrueba.length >= 1){
             originAddress = direccionesPrueba.shift();
-            var path1 = '/es/rawaddr/' + originAddress;
+            var path1 = '/es/rawaddr/' + originAddress, request, jsonResponse;
             options.path = path1;
+
 
             get(options.host + options.path).then(
                 function (response) {
-                    console.log("SUCCESS! " + originAddress, response);
+                    console.log("SUCCESS! " + originAddress);
+                    var info = JSON.parse(response);
+                    console.log("Address = "+info.address);
                     llamadasHttp();
                 },
                 function (error) {
