@@ -5,10 +5,8 @@ var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var https = require('https');
 var fs = require('fs');
 var originAddress = "";
+var elementoExtraido;
 
-//bc incluye los valores from, to y value que se incluirán en el fichero
-var bc = [];
-var A = "a";
 
 
 
@@ -21,90 +19,95 @@ var options = {
 console.log("options.host: "+ options.host);
 //function from https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 
-var direccionesPrueba =["1NfRMkhm5vjizzqkp2Qb28N7geRQCa4XqC",
-                        "1JygMEn42dRJCYQ4s9sjk3Mi5AFvTvpNbA",
-                        "1EFg9XXX1U99pNJJTeQwuuEpbHFW4XS8uL",
-                        "12vAHkg7VaDUDKm9HdysEfQhgErVxnGREV"];
-
+// array incluye los valores from, to y value que se incluirán en el fichero
+var array = [];
 
 
 exports.api = function(req, res, next){
 
-    function callback(){
-
-        bc = [];
-        var str = '';
-
-        var info = JSON.parse(str);
-        var txs = info.txs;
-        console.log(info.address);
-        originAddress = info.address;
-        console.log(txs[0].hash);
-
-        for(t in txs){
-            console.log("Entra en el for txs");
-            var inp = txs[t].inputs;
-            var tout = txs[t].out;
-
-            for(inputs in inp){
-                console.log("Entra en el for inp");
-                var from = inp[inputs].prev_out.addr;
-                var to = originAddress;
-                var va = inp[inputs].prev_out.value;
-                bc.push([from,to,va]);
-                direcciones.push(from);
-
-            }
-            for(out in tout){
-                console.log("Entra en el  for tout");
-                var from = originAddress;
-                var to = tout[out].addr;
-                var va = tout[out].value;
-                bc.push([from,to,va]);
-                direcciones.push(to);
-
-            }
-        }
-
-        console.log("bc: "+bc.length);
-        //http://stackoverflow.com/questions/18848860/javascript-array-to-csv
-
-        var lineArray = [];
-        bc.forEach(function (infoArray, index) {
-            var line = infoArray.join(",");
-            lineArray.push(index == 0 ? "source,target,value"+ "\n" + line : line);
-        });
-        var csvContent = lineArray.join("\n");
-        fs.appendFile("force.csv", csvContent);
-
-        var dirContent = direcciones.join("\n");
-        fs.appendFile("direcciones.txt",dirContent);
-
-        res.render('resultados/result', {dir: originAddress});
-        console.log("Antes de long");
-        console.log("longitud array direcciones: "+ direcciones.length);
-
-        console.log("Tras el RENDER");
-        
-    }//Fin de la función callback
 
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
+    //Se inicia con valor 0 ya que es el nivel cero del árbol.
+
+    var profundidadDeseada = 1;//por definir
+    var profundidad;
     var answer = req.query.answer;
-    var direcciones = [answer];
+    //inicializamos el array de direcciones introducimos la primera dirección
+    var direcciones = [[0,answer]];
+    var direccionesPrueba =[[0,"1NfRMkhm5vjizzqkp2Qb28N7geRQCa4XqC"],
+        [1,"1JygMEn42dRJCYQ4s9sjk3Mi5AFvTvpNbA"],
+        [1,"1EZBqbJSHFKSkVPNKzc5v26HA6nAHiTXq6"],
+        [2,"12vAHkg7VaDUDKm9HdysEfQhgErVxnGREV"],
+        [3,"1EFg9XXX1U99pNJJTeQwuuEpbHFW4XS8uL"]];
+
+    primeraLinea();
+
+    llamadasHttp();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////FUNCIONES UTILIZADAS////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+    //escribir primera linea csv.
+    function primeraLinea(){
+        console.log("ENTRA EN PRIMERALINEA");
+        var textA = ["source,target,value\n"];
+        var csvContent = textA.join("\n");
+        fs.appendFile("prueba.csv", csvContent);
+    }
 
     //El siguiente código ha sido obtenido y tras ello modificado de la url:
     //https://developers.google.com/web/fundamentals/getting-started/primers/promises
     //Realiza peticiones HTTP usando XMLHttpRequest()
 
+
+    //Función que realiza las peticiones HTTP usando la función get previamente creada.
+    function llamadasHttp(){
+        console.log("Entra en llamadasHttp");
+
+
+        profundidad = direcciones[0][0];
+        console.log("Profundidad antes de comprobar: "+direcciones[0][0]);
+        //Mientras el array de direcciones no este vacio y no se haya sobrepasado la profundidad deseada.
+        if(direcciones.length >= 1 && profundidad <= profundidadDeseada){
+            console.log("Profundidad TRAS de comprobar: "+direcciones[0][0]);
+            //extraemos el primer elemento del array direcciones(direcciones[0]) que sera de la forma Array[int(profundidad),address]
+            elementoExtraido = direcciones.shift();
+            //elementoExtraido = direcciones.shift();
+            profundidad = elementoExtraido[0];
+            originAddress = elementoExtraido[1];
+            console.log("origin address en llamadasHttp: "+originAddress);
+
+            console.log("origin Address: "+originAddress);
+
+
+            var path1 = '/es/rawaddr/' + originAddress, request, jsonResponse;
+            options.path = path1;
+
+
+            get(options.host + options.path).then(
+                //The promise has been resolved with response.
+                function (response) {
+                    generarCSV();
+                    //console.log("SUCCESS! " +"prof= "+profundidad+" address: "+ originAddress);
+                    var info = JSON.parse(response);
+                    console.log("SUCCESS!! Address en response del get= "+info.address);
+                    llamadasHttp();
+                },
+                function (error) {
+                    console.error("FAILED!", error);
+                });
+        }
+
+
+    }//fin funcion llamadasHttp()
+
     function get(url) {
         console.log("Entra en get");
+        console.time("Test tiempo");
+        console.log("Url de get: "+url);
         // Return a new promise.
         return new Promise(function(resolve, reject) {
             console.log("Entra en Promise");
@@ -121,6 +124,7 @@ exports.api = function(req, res, next){
                 if (req.status == 200) {
                     // Resolve the promise with the responseText
                     resolve(req.responseText);
+                    console.timeEnd("Test tiempo");
                 }
                 else {
                     // Otherwise reject with the status text
@@ -139,35 +143,83 @@ exports.api = function(req, res, next){
             console.log("Tras req.send()");
 
         });
-    }
+    }//fin funcion get;
 
+    function generarCSV(){
 
-    //Función que realiza las peticiones HTTP usando la función get previamente creada.
-    function llamadasHttp(){
-        console.log("Entra en llamadasHttp");
-        if(direccionesPrueba.length >= 1){
-            originAddress = direccionesPrueba.shift();
-            var path1 = '/es/rawaddr/' + originAddress, request, jsonResponse;
-            options.path = path1;
+        console.log("Profundidad inicio generarCSV: "+ profundidad);
 
+        profundidad++;
+        console.log("Profundidad tras aumento generarCSV: "+ profundidad);
+        direcciones.push([profundidad,"1EZBqbJSHFKSkVPNKzc5v26HA6nAHiTXq6"]);
+        direcciones.push([profundidad,"1Fm4Carm5Cn12f9bp6pFGYw6L6yVHtLcKD"]);
 
-            get(options.host + options.path).then(
-                //The promise has been resolved with response.
-                function (response) {
-                    console.log("SUCCESS! " + originAddress);
-                    var info = JSON.parse(response);
-                    console.log("Address = "+info.address);
-                    llamadasHttp();
-                },
-                function (error) {
-                    console.error("FAILED!", error);
-                });
-        }
+        console.log("Entra en generarCSV()");
 
-    }
+        var test0 = "test0,test0,test0";
+        var test1 = "test1,test1,test1\n";
+        //var test=["test0,test0,test0","test1,test1,test1\n"];
+        var test=[];
+        test.push(test0);
+        test.push(test1);
 
-    llamadasHttp();
+        var csvContent = test.join("\n");
+
+        fs.appendFile("prueba.csv", csvContent);
 
 
 
-};
+
+        /*
+         for(t in txs){
+         console.log("Entra en el for txs");
+         var inp = txs[t].inputs;
+         var tout = txs[t].out;
+
+         for(inputs in inp){
+         console.log("Entra en el for inp");
+         var from = inp[inputs].prev_out.addr;
+         var to = originAddress;
+         var va = inp[inputs].prev_out.value;
+         var sum = from.concat(","+to).concat(","+va+"\n");
+         array.push([from,to,va]);
+         direcciones.push(from);
+
+         }
+         for(out in tout){
+         console.log("Entra en el  for tout");
+         var from = originAddress;
+         var to = tout[out].addr;
+         var va = tout[out].value;
+         array.push([from,to,va]);
+         direcciones.push(to);
+
+         }
+         }
+
+         console.log("array: "+array.length);
+         //http://stackoverflow.com/questions/18848860/javascript-array-to-csv
+
+         var lineArray = [];
+         array.forEach(function (infoArray, index) {
+         var line = infoArray.join(",");
+         lineArray.push(index == 0 ? "source,target,value"+ "\n" + line : line);
+         });
+         var csvContent = lineArray.join("\n");
+         fs.appendFile("force.csv", csvContent);
+
+         var dirContent = direcciones.join("\n");
+         fs.appendFile("direcciones.txt",dirContent);
+
+         res.render('resultados/result', {dir: originAddress});
+         console.log("Antes de long");
+         console.log("longitud array direcciones: "+ direcciones.length);
+
+         console.log("Tras el RENDER");
+         */
+
+    }//Fin de la función generarCSV
+
+
+
+};//fin exports.api
