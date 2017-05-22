@@ -19,8 +19,7 @@ var options = {
 console.log("options.host: "+ options.host);
 //function from https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 
-// array incluye los valores from, to y value que se incluirán en el fichero
-var array = [];
+
 
 
 exports.api = function(req, res, next){
@@ -29,7 +28,7 @@ exports.api = function(req, res, next){
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
     //Se inicia con valor 0 ya que es el nivel cero del árbol.
 
-    var profundidadDeseada = 1;//por definir
+    var profundidadDeseada = 0;//por definir
     var profundidad;
     var answer = req.query.answer;
     //inicializamos el array de direcciones introducimos la primera dirección
@@ -90,9 +89,7 @@ exports.api = function(req, res, next){
             get(options.host + options.path).then(
                 //The promise has been resolved with response.
                 function (response) {
-                    generarCSV();
-                    //console.log("SUCCESS! " +"prof= "+profundidad+" address: "+ originAddress);
-                    var info = JSON.parse(response);
+                    generarCSV(response);
                     console.log("SUCCESS!! Address en response del get= "+info.address);
                     llamadasHttp();
                 },
@@ -145,7 +142,13 @@ exports.api = function(req, res, next){
         });
     }//fin funcion get;
 
-    function generarCSV(){
+    function generarCSV(response){
+
+        var info = JSON.parse(response);
+        var txs = info.txs;
+
+        // array incluye los valores from, to y value que se incluirán en el fichero
+        var array = [];
 
         console.log("Profundidad inicio generarCSV: "+ profundidad);
 
@@ -156,6 +159,7 @@ exports.api = function(req, res, next){
 
         console.log("Entra en generarCSV()");
 
+        /*
         var test0 = "test0,test0,test0";
         var test1 = "test1,test1,test1\n";
         //var test=["test0,test0,test0","test1,test1,test1\n"];
@@ -164,38 +168,43 @@ exports.api = function(req, res, next){
         test.push(test1);
 
         var csvContent = test.join("\n");
-
-        fs.appendFile("prueba.csv", csvContent);
-
-
+         fs.appendFile("prueba.csv", csvContent);
+        */
 
 
+        var test=[];
+
+        for(t in txs){
+             console.log("Entra en el for txs");
+             var inp = txs[t].inputs;
+             var tout = txs[t].out;
+
+             for(inputs in inp){
+                 console.log("Entra en el for inp");
+                 var from = inp[inputs].prev_out.addr;
+                 var to = originAddress;
+                 var va = inp[inputs].prev_out.value;
+                 var sum = from.concat(","+to).concat(","+va+"\n");
+                 test.push(sum);
+                // var csvContent = test.join("\n");
+                 fs.appendFile("prueba.csv", test);
+                 direcciones.push(from);
+
+             }
+             for(out in tout){
+                 console.log("Entra en el  for tout");
+                 var from = originAddress;
+                 var to = tout[out].addr;
+                 var va = tout[out].value;
+                 var sum = from.concat(","+to).concat(","+va+"\n");
+                 test.push(sum);
+                 var csvContent = test.join("\n");
+                 fs.appendFile("prueba.csv", csvContent);
+                 direcciones.push(to);
+
+             }
+         }
         /*
-         for(t in txs){
-         console.log("Entra en el for txs");
-         var inp = txs[t].inputs;
-         var tout = txs[t].out;
-
-         for(inputs in inp){
-         console.log("Entra en el for inp");
-         var from = inp[inputs].prev_out.addr;
-         var to = originAddress;
-         var va = inp[inputs].prev_out.value;
-         var sum = from.concat(","+to).concat(","+va+"\n");
-         array.push([from,to,va]);
-         direcciones.push(from);
-
-         }
-         for(out in tout){
-         console.log("Entra en el  for tout");
-         var from = originAddress;
-         var to = tout[out].addr;
-         var va = tout[out].value;
-         array.push([from,to,va]);
-         direcciones.push(to);
-
-         }
-         }
 
          console.log("array: "+array.length);
          //http://stackoverflow.com/questions/18848860/javascript-array-to-csv
