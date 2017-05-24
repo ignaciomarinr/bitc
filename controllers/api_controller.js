@@ -28,7 +28,9 @@ exports.api = function(req, res, next){
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
     //Se inicia con valor 0 ya que es el nivel cero del árbol.
 
-    var profundidadDeseada = 0;//por definir
+    var profundidadDeseada = 3;//por definir
+    profundidadDeseada--;
+    console.log("profundidadDESEADA= "+profundidadDeseada);
     var profundidad;
     var answer = req.query.answer;
     //inicializamos el array de direcciones introducimos la primera dirección
@@ -38,6 +40,8 @@ exports.api = function(req, res, next){
         [1,"1EZBqbJSHFKSkVPNKzc5v26HA6nAHiTXq6"],
         [2,"12vAHkg7VaDUDKm9HdysEfQhgErVxnGREV"],
         [3,"1EFg9XXX1U99pNJJTeQwuuEpbHFW4XS8uL"]];
+
+
 
     primeraLinea();
 
@@ -49,12 +53,14 @@ exports.api = function(req, res, next){
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
     //escribir primera linea csv.
     function primeraLinea(){
         console.log("ENTRA EN PRIMERALINEA");
         var textA = ["source,target,value\n"];
         var csvContent = textA.join("\n");
-        fs.appendFile("prueba.csv", csvContent);
+        console.log("------IMPRIMO: "+ JSON.stringify(csvContent));
+        fs.writeFile("prueba.csv", csvContent);
     }
 
     //El siguiente código ha sido obtenido y tras ello modificado de la url:
@@ -64,18 +70,25 @@ exports.api = function(req, res, next){
 
     //Función que realiza las peticiones HTTP usando la función get previamente creada.
     function llamadasHttp(){
+        console.log("llamadasHttp()");
         console.log("Entra en llamadasHttp");
 
 
         profundidad = direcciones[0][0];
-        console.log("Profundidad antes de comprobar: "+direcciones[0][0]);
+        console.log("profundidadDESEADA= "+profundidadDeseada);
+        console.log("Profundidad antes de comprobar: "+profundidad);
+        if(profundidad <= profundidadDeseada){
+            console.log("profundidad <= profundidadDeseada");
+        }
         //Mientras el array de direcciones no este vacio y no se haya sobrepasado la profundidad deseada.
         if(direcciones.length >= 1 && profundidad <= profundidadDeseada){
-            console.log("Profundidad TRAS de comprobar: "+direcciones[0][0]);
+            console.log("Profundidad TRAS  comprobar: "+direcciones[0][0]);
             //extraemos el primer elemento del array direcciones(direcciones[0]) que sera de la forma Array[int(profundidad),address]
             elementoExtraido = direcciones.shift();
+            console.log("elemento extraido->originAddress: "+ elementoExtraido);
             //elementoExtraido = direcciones.shift();
             profundidad = elementoExtraido[0];
+            console.log("profundidad en llamadasHttp= "+profundidad);
             originAddress = elementoExtraido[1];
             console.log("origin address en llamadasHttp: "+originAddress);
 
@@ -90,7 +103,7 @@ exports.api = function(req, res, next){
                 //The promise has been resolved with response.
                 function (response) {
                     generarCSV(response);
-                    console.log("SUCCESS!! Address en response del get= "+info.address);
+                    //console.log("SUCCESS!! Address en response del get= "+info.address);
                     llamadasHttp();
                 },
                 function (error) {
@@ -102,6 +115,7 @@ exports.api = function(req, res, next){
     }//fin funcion llamadasHttp()
 
     function get(url) {
+        console.log("get(url)");
         console.log("Entra en get");
         console.time("Test tiempo");
         console.log("Url de get: "+url);
@@ -144,6 +158,8 @@ exports.api = function(req, res, next){
 
     function generarCSV(response){
 
+        console.log("generarCSV()");
+
         var info = JSON.parse(response);
         var txs = info.txs;
 
@@ -154,8 +170,6 @@ exports.api = function(req, res, next){
 
         profundidad++;
         console.log("Profundidad tras aumento generarCSV: "+ profundidad);
-        direcciones.push([profundidad,"1EZBqbJSHFKSkVPNKzc5v26HA6nAHiTXq6"]);
-        direcciones.push([profundidad,"1Fm4Carm5Cn12f9bp6pFGYw6L6yVHtLcKD"]);
 
         console.log("Entra en generarCSV()");
 
@@ -171,7 +185,7 @@ exports.api = function(req, res, next){
          fs.appendFile("prueba.csv", csvContent);
         */
 
-
+        // En test se van guardando temporalente los datos a guardar en el archivo antes de hacerlo. Tras ello se borran.
         var test=[];
 
         for(t in txs){
@@ -179,30 +193,47 @@ exports.api = function(req, res, next){
              var inp = txs[t].inputs;
              var tout = txs[t].out;
 
-             for(inputs in inp){
-                 console.log("Entra en el for inp");
-                 var from = inp[inputs].prev_out.addr;
-                 var to = originAddress;
-                 var va = inp[inputs].prev_out.value;
-                 var sum = from.concat(","+to).concat(","+va+"\n");
-                 test.push(sum);
-                // var csvContent = test.join("\n");
-                 fs.appendFile("prueba.csv", test);
-                 direcciones.push(from);
-
+            console.log("inp[0].prev_out.addr= "+ inp[0].prev_out.addr +"\n");
+            console.log("originAddress= "+originAddress);
+             if(inp[0].prev_out.addr == originAddress){
+                 for(out in tout){
+                     console.log("Entra en el  for tout");
+                     var from = originAddress;
+                     var to = tout[out].addr;
+                     var va = tout[out].value;
+                     var sum = from.concat(","+to).concat(","+va+"\n");
+                     test.push(sum);
+                    // var csvContent = test.join("\n");
+                     var csvContent = test;
+                     console.log("------IMPRIMO: "+ JSON.stringify(csvContent));
+                     fs.appendFile("prueba.csv", csvContent);
+                     test = [];
+                     var incluirEnDirecciones = [profundidad,to];
+                     direcciones.push(incluirEnDirecciones);
+                     console.log("++++incluyo en direcciones: "+JSON.stringify(incluirEnDirecciones));
+                 }
              }
-             for(out in tout){
-                 console.log("Entra en el  for tout");
-                 var from = originAddress;
-                 var to = tout[out].addr;
-                 var va = tout[out].value;
-                 var sum = from.concat(","+to).concat(","+va+"\n");
-                 test.push(sum);
-                 var csvContent = test.join("\n");
-                 fs.appendFile("prueba.csv", csvContent);
-                 direcciones.push(to);
+             else{
+                 for(inputs in inp){
+                     console.log("Entra en el for inp");
+                     var from = inp[inputs].prev_out.addr;
+                     var to = originAddress;
+                     var va = inp[inputs].prev_out.value;
+                     var sum = from.concat(","+to).concat(","+va+"\n");
+                     test.push(sum);
+                     // var csvContent = test.join("\n");
+                     console.log("------IMPRIMO: "+ JSON.stringify(test));
+                     fs.appendFile("prueba.csv", test);
+                     test = [];
+                     var incluirEnDirecciones = [profundidad,from];
+                     direcciones.push(incluirEnDirecciones);
+                     console.log("++++incluyo en direcciones: "+JSON.stringify(incluirEnDirecciones));
 
+                 }
              }
+
+
+
          }
         /*
 
