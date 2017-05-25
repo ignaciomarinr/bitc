@@ -12,7 +12,7 @@ var elementoExtraido;
 
 var options = {
     host: 'https://blockchain.info',
-    path: '/es/rawaddr/1JygMEn42dRJCYQ4s9sjk3Mi5AFvTvpNbA'
+    path: '/es/rawaddr/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'
 };
 
 
@@ -28,11 +28,19 @@ exports.api = function(req, res, next){
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
     //Se inicia con valor 0 ya que es el nivel cero del árbol.
 
-    var profundidadDeseada = 3;//por definir
+    var answer;
+    answer = req.query.answer;
+
+
+    var profundidadIndicada = req.query.prof;
+
+    console.log("profundidadIndicada= "+profundidadIndicada);
+
+    var profundidadDeseada = profundidadIndicada;
     profundidadDeseada--;
     console.log("profundidadDESEADA= "+profundidadDeseada);
     var profundidad;
-    var answer = req.query.answer;
+
     //inicializamos el array de direcciones introducimos la primera dirección
     var direcciones = [[0,answer]];
     var direccionesPrueba =[[0,"1NfRMkhm5vjizzqkp2Qb28N7geRQCa4XqC"],
@@ -109,6 +117,11 @@ exports.api = function(req, res, next){
                 function (error) {
                     console.error("FAILED!", error);
                 });
+        }else{
+
+            console.log("LANZA RENDER");
+            console.log("originAdress antes del render: "+answer);
+            res.render('resultados/result', {dir: answer});
         }
 
 
@@ -195,7 +208,7 @@ exports.api = function(req, res, next){
 
             console.log("inp[0].prev_out.addr= "+ inp[0].prev_out.addr +"\n");
             console.log("originAddress= "+originAddress);
-             if(inp[0].prev_out.addr == originAddress){
+             if(inp[0].prev_out.addr === originAddress){
                  for(out in tout){
                      console.log("Entra en el  for tout");
                      var from = originAddress;
@@ -235,28 +248,6 @@ exports.api = function(req, res, next){
 
 
          }
-        /*
-
-         console.log("array: "+array.length);
-         //http://stackoverflow.com/questions/18848860/javascript-array-to-csv
-
-         var lineArray = [];
-         array.forEach(function (infoArray, index) {
-         var line = infoArray.join(",");
-         lineArray.push(index == 0 ? "source,target,value"+ "\n" + line : line);
-         });
-         var csvContent = lineArray.join("\n");
-         fs.appendFile("force.csv", csvContent);
-
-         var dirContent = direcciones.join("\n");
-         fs.appendFile("direcciones.txt",dirContent);
-
-         res.render('resultados/result', {dir: originAddress});
-         console.log("Antes de long");
-         console.log("longitud array direcciones: "+ direcciones.length);
-
-         console.log("Tras el RENDER");
-         */
 
     }//Fin de la función generarCSV
 

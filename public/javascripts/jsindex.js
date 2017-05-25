@@ -1,5 +1,5 @@
 // get the data
-d3.csv("force.csv", function(error, links) {
+d3.csv("bin/prueba.csv", function(error, links) {
 
 var nodes = {};
 var id = document.getElementById("sacaValor").getAttribute('value');
