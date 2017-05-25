@@ -17,6 +17,7 @@ var options = {
 
 
 console.log("options.host: "+ options.host);
+console.time("TIEMPO TOTAL");
 //function from https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 
 
@@ -122,6 +123,7 @@ exports.api = function(req, res, next){
             console.log("LANZA RENDER");
             console.log("originAdress antes del render: "+answer);
             res.render('resultados/result', {dir: answer});
+            console.timeEnd("TIEMPO TOTAL");
         }
 
 
@@ -185,18 +187,6 @@ exports.api = function(req, res, next){
         console.log("Profundidad tras aumento generarCSV: "+ profundidad);
 
         console.log("Entra en generarCSV()");
-
-        /*
-        var test0 = "test0,test0,test0";
-        var test1 = "test1,test1,test1\n";
-        //var test=["test0,test0,test0","test1,test1,test1\n"];
-        var test=[];
-        test.push(test0);
-        test.push(test1);
-
-        var csvContent = test.join("\n");
-         fs.appendFile("prueba.csv", csvContent);
-        */
 
         // En test se van guardando temporalente los datos a guardar en el archivo antes de hacerlo. Tras ello se borran.
         var test=[];
