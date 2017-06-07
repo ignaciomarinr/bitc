@@ -1,6 +1,7 @@
 var blockexplorer = require('blockchain.info/blockexplorer');
 var DataFrame = require('dataframe-js').DataFrame;
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+var csv = require('express-csv');
 
 var https = require('https');
 var fs = require('fs');
@@ -20,10 +21,17 @@ console.log("options.host: "+ options.host);
 console.time("TIEMPO TOTAL");
 //function from https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 
+var csvArray = [];
+var csvPrueba = [["source","tarjet","value"],["A","B",2],["A","C",2],["D","A",2]];
+
+exports.csv = function (req, res) {
+    //res.csv(csvArray);
+    console.log("exportsCSV= "+csvArray)
+    res.csv(csvArray);
+};
 
 
-
-exports.api = function(req, res, next){
+exports.api = function(req, res){
 
 
     //Obtenemos la dirección origen y la incluimos como primera dirección a buscar.
@@ -31,6 +39,10 @@ exports.api = function(req, res, next){
 
     var answer;
     answer = req.query.answer;
+    var nodos;
+    nodos = req.query.nodos;
+
+
 
 
     var profundidadIndicada = req.query.prof;
@@ -43,6 +55,7 @@ exports.api = function(req, res, next){
     var profundidad;
 
     //inicializamos el array de direcciones introducimos la primera dirección
+    csvArray = [];
     var direcciones = [[0,answer]];
     var direccionesPrueba =[[0,"1NfRMkhm5vjizzqkp2Qb28N7geRQCa4XqC"],
         [1,"1JygMEn42dRJCYQ4s9sjk3Mi5AFvTvpNbA"],
@@ -67,9 +80,11 @@ exports.api = function(req, res, next){
     function primeraLinea(){
         console.log("ENTRA EN PRIMERALINEA");
         var textA = ["source,target,value\n"];
+        var textB = ["source","target","value"];
+        csvArray.push(textB);
         var csvContent = textA.join("\n");
         console.log("------IMPRIMO: "+ JSON.stringify(csvContent));
-        fs.writeFile("prueba.csv", csvContent);
+        //fs.writeFile("prueba.csv", csvContent);//escribir en un stream
     }
 
     //El siguiente código ha sido obtenido y tras ello modificado de la url:
@@ -122,8 +137,11 @@ exports.api = function(req, res, next){
 
             console.log("LANZA RENDER");
             console.log("originAdress antes del render: "+answer);
+            //res.csv(csvArray);
             res.render('resultados/result', {dir: answer});
+            //////////////////////////////
             console.timeEnd("TIEMPO TOTAL");
+            //////////////////////////////
         }
 
 
@@ -214,11 +232,12 @@ exports.api = function(req, res, next){
                          var to = tout[out].addr;
                          var va = tout[out].value;
                          var sum = from.concat(","+to).concat(","+va+"\n");
+                         csvArray.push([from,to,va]);
                          test.push(sum);
                          // var csvContent = test.join("\n");
                          var csvContent = test;
                          console.log("------IMPRIMO: "+ JSON.stringify(csvContent));
-                         fs.appendFile("prueba.csv", csvContent);
+                       //  fs.appendFile("prueba.csv", csvContent);
                          test = [];
                          var incluirEnDirecciones = [profundidad,to];
                          direcciones.push(incluirEnDirecciones);
@@ -231,10 +250,11 @@ exports.api = function(req, res, next){
                          var to = originAddress;
                          var va = inp[inputs].prev_out.value;
                          var sum = from.concat(","+to).concat(","+va+"\n");
+                         csvArray.push([from,to,va]);
                          test.push(sum);
                          // var csvContent = test.join("\n");
                          console.log("------IMPRIMO: "+ JSON.stringify(test));
-                         fs.appendFile("prueba.csv", test);
+                      //  fs.appendFile("prueba.csv", test);
                          test = [];
                          var incluirEnDirecciones = [profundidad,from];
                          direcciones.push(incluirEnDirecciones);
