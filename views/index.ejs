@@ -9,6 +9,7 @@
     <p>Welcome to <%= title %></p>
     <form method="get" action="/api">
     	<input type="text" name="answer" value="" placeholder="Direccion"/>
+        <p>Profundidad: </p>
         <select name="prof">
           <option name=1>1</option>
           <option name=2>2</option>
@@ -18,8 +19,9 @@
           <option name=6>6</option>
             <option name=7>7</option>
         </select>
+        <p>Número de nodos: </p>
         <select name="nodos">
-            <option name=0>Todos</option>
+            <option name="Todos">Todos</option>
             <option name=1>1</option>
             <option name=2>2</option>
             <option name=3>3</option>
@@ -28,6 +30,13 @@
             <option name=6>6</option>
             <option name=7>7</option>
         </select>
+        <p>Tipo: </p>
+        <select name = "tipo">
+            <option name="todos">Todas</option>
+            <option name="entrantes">Entrantes</option>
+            <option name="Salientes">Salientes</option>
+        </select>
+        <p></p>
     	<input type="submit" value="Buscar"/>
     </form>
     <p> Ejemplo de dirección válida: 1Hg3xpt3y4EApuCEB8wfotBWYex1wB5EkN </p>

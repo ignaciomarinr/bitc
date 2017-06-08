@@ -41,6 +41,10 @@ exports.api = function(req, res){
     answer = req.query.answer;
     var nodos;
     nodos = req.query.nodos;
+    console.log("Numero de nodos deseado: "+nodos);
+    var tipo;
+    tipo = req.query.tipo;
+    console.log("Tipo de transacciones deseados (0 = todas, 1 = entrantes, 2 = salientes): "+tipo);
 
 
 
@@ -226,43 +230,47 @@ exports.api = function(req, res){
             }
             // if(inp[0].prev_out.addr === originAddress){
             if(envio){
-                     for(out in tout){
-                         console.log("Entra en el  for tout");
-                         var from = originAddress;
-                         var to = tout[out].addr;
-                         var va = tout[out].value;
-                         var sum = from.concat(","+to).concat(","+va+"\n");
-                         csvArray.push([from,to,va]);
-                         test.push(sum);
-                         // var csvContent = test.join("\n");
-                         var csvContent = test;
-                         console.log("------IMPRIMO: "+ JSON.stringify(csvContent));
-                       //  fs.appendFile("prueba.csv", csvContent);
-                         test = [];
-                         var incluirEnDirecciones = [profundidad,to];
-                         direcciones.push(incluirEnDirecciones);
-                         console.log("++++incluyo en direcciones: "+JSON.stringify(incluirEnDirecciones));
-                     }
+                if(tipo === "Salientes" || tipo === "Todas") {
+                    for (out in tout) {
+                        console.log("Entra en el  for tout");
+                        var from = originAddress;
+                        var to = tout[out].addr;
+                        var va = tout[out].value;
+                        var sum = from.concat("," + to).concat("," + va + "\n");
+                        csvArray.push([from, to, va]);
+                        test.push(sum);
+                        // var csvContent = test.join("\n");
+                        var csvContent = test;
+                        console.log("------IMPRIMO: " + JSON.stringify(csvContent));
+                        //  fs.appendFile("prueba.csv", csvContent);
+                        test = [];
+                        var incluirEnDirecciones = [profundidad, to];
+                        direcciones.push(incluirEnDirecciones);
+                        console.log("++++incluyo en direcciones: " + JSON.stringify(incluirEnDirecciones));
+                    }
+                }
             } else{
-                     for(inputs in inp){
-                         console.log("Entra en el for inp");
-                         var from = inp[inputs].prev_out.addr;
-                         var to = originAddress;
-                         var va = inp[inputs].prev_out.value;
-                         var sum = from.concat(","+to).concat(","+va+"\n");
-                         csvArray.push([from,to,va]);
-                         test.push(sum);
-                         // var csvContent = test.join("\n");
-                         console.log("------IMPRIMO: "+ JSON.stringify(test));
-                      //  fs.appendFile("prueba.csv", test);
-                         test = [];
-                         var incluirEnDirecciones = [profundidad,from];
-                         direcciones.push(incluirEnDirecciones);
-                         console.log("++++incluyo en direcciones: "+JSON.stringify(incluirEnDirecciones));
+                if(tipo === "Entrantes" || tipo === "Todas") {
+                    for (inputs in inp) {
+                        console.log("Entra en el for inp");
+                        var from = inp[inputs].prev_out.addr;
+                        var to = originAddress;
+                        var va = inp[inputs].prev_out.value;
+                        var sum = from.concat("," + to).concat("," + va + "\n");
+                        csvArray.push([from, to, va]);
+                        test.push(sum);
+                        // var csvContent = test.join("\n");
+                        console.log("------IMPRIMO: " + JSON.stringify(test));
+                        //  fs.appendFile("prueba.csv", test);
+                        test = [];
+                        var incluirEnDirecciones = [profundidad, from];
+                        direcciones.push(incluirEnDirecciones);
+                        console.log("++++incluyo en direcciones: " + JSON.stringify(incluirEnDirecciones));
 
-                     }
-                 }
+                    }
+                }
              }
+         }
 
     }//Fin de la función generarCSV
 
