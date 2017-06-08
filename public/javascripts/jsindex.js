@@ -26,8 +26,11 @@ d3.csv("csv", function(error, links) {
 
 
 
-    var width = 1280,
-        height = 667;
+  //  var width = 1280,
+    //    height = 667;
+
+    var width = screen.width,
+        height = screen.height;
 
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
