@@ -45,7 +45,8 @@ exports.api = function(req, res){
     var tipo;
     tipo = req.query.tipo;
     console.log("Tipo de transacciones deseados (0 = todas, 1 = entrantes, 2 = salientes): "+tipo);
-
+    var numeroNodos;
+    numeroNodos=req.query.nodos;
 
 
 
